@@ -1,3 +1,7 @@
+locals {
+  ami_id = "ami-07242198dfdb68c36"
+}
+
 ################################################################################
 # EKS Cluster
 ################################################################################
@@ -40,12 +44,13 @@ module "eks" {
       desired_size = 2
     }
 
-    g5-gpu = {
+    g4dn-gpu = {
       create = true
 
-      # Note: this is the standard AMI, non-GPU
-      ami_type       = "AL2_x86_64"
-      instance_types = ["g5.4xlarge"]
+      ami_id                     = local.ami_id
+      enable_bootstrap_user_data = true
+
+      instance_types = ["g4dn.8xlarge"]
 
       min_size     = 1
       max_size     = 1
@@ -61,21 +66,21 @@ module "eks" {
         }
       }
 
-      # Use the availability zone that supports the instance
-      # aws ec2 describe-instance-type-offerings --location-type availability-zone  \
-      # --filters Name=instance-type,Values=g5.2xlarge \
-      # --region eu-central-1 --output table
       subnet_ids = [element(module.vpc.private_subnets, 1)]
+
+      network_interfaces = [
+        for i in range(1) : {
+          associate_public_ip_address = false
+          delete_on_termination       = true
+          device_index                = i == 0 ? 0 : 1
+          network_card_index          = i
+          interface_type              = "efa"
+        }
+      ]
 
       placement = {
         group_name = aws_placement_group.this.name
       }
-
-      pre_bootstrap_user_data = templatefile("${path.module}/user_data.sh", {
-        install_cuda_toolkit             = true
-        install_nvidia_container_toolkit = false # Using GPU operator to install/manage
-        install_nccl_tests               = false
-      })
 
       taints = {
         # Ensure only GPU workloads are scheduled on this nodegroup
@@ -88,14 +93,15 @@ module "eks" {
     }
 
     p4-gpu = {
-      create = true
+      create = false
 
-      # Note: this is the standard AMI, non-GPU
-      ami_type       = "AL2_x86_64"
+      ami_id                     = local.ami_id
+      enable_bootstrap_user_data = true
+
       instance_types = ["p4d.24xlarge"]
 
       min_size     = 1
-      max_size     = 5
+      max_size     = 1
       desired_size = 1
 
       block_device_mappings = {
@@ -119,7 +125,7 @@ module "eks" {
         for i in range(4) : {
           associate_public_ip_address = false
           delete_on_termination       = true
-          device_index                = i
+          device_index                = i == 0 ? 0 : 1
           network_card_index          = i
           interface_type              = "efa"
         }
@@ -128,12 +134,6 @@ module "eks" {
       placement = {
         group_name = aws_placement_group.this.name
       }
-
-      pre_bootstrap_user_data = templatefile("${path.module}/user_data.sh", {
-        install_cuda_toolkit             = true
-        install_nvidia_container_toolkit = false # Using GPU operator to install/manage
-        install_nccl_tests               = false
-      })
 
       taints = {
         # Ensure only GPU workloads are scheduled on this nodegroup
@@ -145,16 +145,16 @@ module "eks" {
       }
     }
 
-    # This nodegroup is for GPU workloads
     p5-gpu = {
       create = false
 
-      # Note: this is the standard AMI, non-GPU
-      ami_type       = "AL2_x86_64"
+      ami_id                     = local.ami_id
+      enable_bootstrap_user_data = true
+
       instance_types = ["p5.48xlarge"]
 
       min_size     = 1
-      max_size     = 5
+      max_size     = 1
       desired_size = 1
 
       block_device_mappings = {
@@ -187,12 +187,6 @@ module "eks" {
       placement = {
         group_name = aws_placement_group.this.name
       }
-
-      pre_bootstrap_user_data = templatefile("${path.module}/user_data.sh", {
-        install_cuda_toolkit             = true
-        install_nvidia_container_toolkit = true
-        install_nccl_tests               = true
-      })
 
       taints = {
         # Ensure only GPU workloads are scheduled on this nodegroup
