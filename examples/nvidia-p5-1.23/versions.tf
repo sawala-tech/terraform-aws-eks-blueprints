@@ -28,6 +28,6 @@ terraform {
   # backend "s3" {
   #   bucket = "terraform-ssp-github-actions-state"
   #   region = "us-west-2"
-  #   key    = "e2e/elastic-fabric-adapter/terraform.tfstate"
+  #   key    = "e2e/nvidia-p5-1-23/terraform.tfstate"
   # }
 }

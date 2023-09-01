@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-test-nvidia-smi
+spec:
+  restartPolicy: OnFailure
+  containers:
+    - name: gpu-demo
+      image: nvidia/cuda:12.2.0-runtime-ubi8
+      command: ['/bin/sh', '-c']
+      args: ['nvidia-smi && tail -f /dev/null']
+      resources:
+        limits:
+          nvidia.com/gpu: 1
+  tolerations:
+    - key: 'nvidia.com/gpu'
+      operator: 'Equal'
+      value: 'true'
+      effect: 'NoSchedule'
