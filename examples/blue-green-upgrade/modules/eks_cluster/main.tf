@@ -9,8 +9,8 @@ locals {
   service     = var.service_name
   region      = var.aws_region
 
-  env  = local.service
-  name = "${local.environment}-${local.service}"
+  env         = local.service
+  name        = "${local.environment}-${local.service}"
 
   # Mapping
   hosted_zone_name                            = var.hosted_zone_name
@@ -20,61 +20,61 @@ locals {
   argocd_secret_manager_name                  = var.argocd_secret_manager_name_suffix
   eks_admin_role_name                         = var.eks_admin_role_name
 
-  gitops_workloads_url      = "${var.gitops_workloads_org}/${var.gitops_workloads_repo}"
-  gitops_workloads_path     = var.gitops_workloads_path
-  gitops_workloads_revision = var.gitops_workloads_revision
+  gitops_workloads_url                        = "${var.gitops_workloads_org}/${var.gitops_workloads_repo}"
+  gitops_workloads_path                       = var.gitops_workloads_path
+  gitops_workloads_revision                   = var.gitops_workloads_revision
 
-  gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
-  gitops_addons_basepath = var.gitops_addons_basepath
-  gitops_addons_path     = var.gitops_addons_path
-  gitops_addons_revision = var.gitops_addons_revision
+  gitops_addons_url                           = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
+  gitops_addons_basepath                      = var.gitops_addons_basepath
+  gitops_addons_path                          = var.gitops_addons_path
+  gitops_addons_revision                      = var.gitops_addons_revision
 
   # Route 53 Ingress Weights
-  argocd_route53_weight      = var.argocd_route53_weight
-  route53_weight             = var.route53_weight
-  ecsfrontend_route53_weight = var.ecsfrontend_route53_weight
+  argocd_route53_weight                       = var.argocd_route53_weight
+  route53_weight                              = var.route53_weight
+  ecsfrontend_route53_weight                  = var.ecsfrontend_route53_weight
 
-  eks_cluster_domain = "${local.environment}.${local.hosted_zone_name}" # for external-dns
+  eks_cluster_domain                          = "${local.environment}.${local.hosted_zone_name}" # for external-dns
 
-  tag_val_vpc            = local.environment
-  tag_val_public_subnet  = "${local.environment}-public-"
-  tag_val_private_subnet = "${local.environment}-private-"
+  tag_val_vpc                                 = local.environment
+  tag_val_public_subnet                       = "${local.environment}-public-"
+  tag_val_private_subnet                      = "${local.environment}-private-"
 
-  node_group_name = "managed-ondemand"
+  node_group_name                             = "managed-ondemand"
 
   #---------------------------------------------------------------
   # ARGOCD ADD-ON APPLICATION
   #---------------------------------------------------------------
 
   aws_addons = {
-    enable_cert_manager          = true
-    enable_aws_ebs_csi_resources = true # generate gp2 and gp3 storage classes for ebs-csi
+    enable_cert_manager                           = true
+    enable_aws_ebs_csi_resources                  = true # generate gp2 and gp3 storage classes for ebs-csi
     #enable_aws_efs_csi_driver                    = true
     #enable_aws_fsx_csi_driver                    = true
-    enable_aws_cloudwatch_metrics = true
+    enable_aws_cloudwatch_metrics                 = true
     #enable_aws_privateca_issuer                  = true
     #enable_cluster_autoscaler                    = true
-    enable_external_dns                 = true
-    enable_external_secrets             = true
-    enable_aws_load_balancer_controller = true
-    #enable_fargate_fluentbit                     = true
-    enable_aws_for_fluentbit = true
+    enable_external_dns                           = true
+    enable_external_secrets                       = true
+    enable_aws_load_balancer_controller           = true
+    #enable_fargate_fluentbit                      = true
+    enable_aws_for_fluentbit                       = true
     #enable_aws_node_termination_handler          = true
-    enable_karpenter = true
+    enable_karpenter                              = true
     #enable_velero                                = true
     #enable_aws_gateway_api_controller            = true
     #enable_aws_secrets_store_csi_driver_provider = true
   }
   oss_addons = {
     #enable_argo_rollouts                         = true
-    #enable_argo_workflows                        = true
+    #enable_argo_workflows                         = true
     #enable_cluster_proportional_autoscaler       = true
     #enable_gatekeeper                            = true
     #enable_gpu_operator                          = true
-    enable_ingress_nginx = true
-    enable_kyverno       = true
+    #enable_ingress_nginx                         = true
+    enable_kyverno                                = true
     #enable_kube_prometheus_stack                 = true
-    enable_metrics_server = true
+    enable_metrics_server                         = true
     #enable_prometheus_adapter                    = true
     #enable_secrets_store_csi_driver              = true
     #enable_vpa                                   = true
@@ -116,8 +116,6 @@ locals {
       argocd_route53_weight      = local.argocd_route53_weight
       route53_weight             = local.route53_weight
       ecsfrontend_route53_weight = local.ecsfrontend_route53_weight
-      #target_group_arn = local.service == "blue" ? data.aws_lb_target_group.tg_blue.arn : data.aws_lb_target_group.tg_green.arn # <-- Add this line
-      #      external_lb_dns = data.aws_lb.alb.dns_name
     }
   )
 
