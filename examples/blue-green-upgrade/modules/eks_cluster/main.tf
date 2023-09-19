@@ -9,8 +9,8 @@ locals {
   service     = var.service_name
   region      = var.aws_region
 
-  env         = local.service
-  name        = "${local.environment}-${local.service}"
+  env  = local.service
+  name = "${local.environment}-${local.service}"
 
   # Mapping
   hosted_zone_name                            = var.hosted_zone_name
@@ -20,47 +20,47 @@ locals {
   argocd_secret_manager_name                  = var.argocd_secret_manager_name_suffix
   eks_admin_role_name                         = var.eks_admin_role_name
 
-  gitops_workloads_url                        = "${var.gitops_workloads_org}/${var.gitops_workloads_repo}"
-  gitops_workloads_path                       = var.gitops_workloads_path
-  gitops_workloads_revision                   = var.gitops_workloads_revision
+  gitops_workloads_url      = "${var.gitops_workloads_org}/${var.gitops_workloads_repo}"
+  gitops_workloads_path     = var.gitops_workloads_path
+  gitops_workloads_revision = var.gitops_workloads_revision
 
-  gitops_addons_url                           = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
-  gitops_addons_basepath                      = var.gitops_addons_basepath
-  gitops_addons_path                          = var.gitops_addons_path
-  gitops_addons_revision                      = var.gitops_addons_revision
+  gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
+  gitops_addons_basepath = var.gitops_addons_basepath
+  gitops_addons_path     = var.gitops_addons_path
+  gitops_addons_revision = var.gitops_addons_revision
 
   # Route 53 Ingress Weights
-  argocd_route53_weight                       = var.argocd_route53_weight
-  route53_weight                              = var.route53_weight
-  ecsfrontend_route53_weight                  = var.ecsfrontend_route53_weight
+  argocd_route53_weight      = var.argocd_route53_weight
+  route53_weight             = var.route53_weight
+  ecsfrontend_route53_weight = var.ecsfrontend_route53_weight
 
-  eks_cluster_domain                          = "${local.environment}.${local.hosted_zone_name}" # for external-dns
+  eks_cluster_domain = "${local.environment}.${local.hosted_zone_name}" # for external-dns
 
-  tag_val_vpc                                 = local.environment
-  tag_val_public_subnet                       = "${local.environment}-public-"
-  tag_val_private_subnet                      = "${local.environment}-private-"
+  tag_val_vpc            = local.environment
+  tag_val_public_subnet  = "${local.environment}-public-"
+  tag_val_private_subnet = "${local.environment}-private-"
 
-  node_group_name                             = "managed-ondemand"
+  node_group_name = "managed-ondemand"
 
   #---------------------------------------------------------------
   # ARGOCD ADD-ON APPLICATION
   #---------------------------------------------------------------
 
   aws_addons = {
-    enable_cert_manager                           = true
-    enable_aws_ebs_csi_resources                  = true # generate gp2 and gp3 storage classes for ebs-csi
+    enable_cert_manager          = true
+    enable_aws_ebs_csi_resources = true # generate gp2 and gp3 storage classes for ebs-csi
     #enable_aws_efs_csi_driver                    = true
     #enable_aws_fsx_csi_driver                    = true
-    enable_aws_cloudwatch_metrics                 = true
+    enable_aws_cloudwatch_metrics = true
     #enable_aws_privateca_issuer                  = true
     #enable_cluster_autoscaler                    = true
-    enable_external_dns                           = true
-    enable_external_secrets                       = true
-    enable_aws_load_balancer_controller           = true
+    enable_external_dns                 = true
+    enable_external_secrets             = true
+    enable_aws_load_balancer_controller = true
     #enable_fargate_fluentbit                      = true
-    enable_aws_for_fluentbit                       = true
+    enable_aws_for_fluentbit = true
     #enable_aws_node_termination_handler          = true
-    enable_karpenter                              = true
+    enable_karpenter = true
     #enable_velero                                = true
     #enable_aws_gateway_api_controller            = true
     #enable_aws_secrets_store_csi_driver_provider = true
@@ -72,9 +72,9 @@ locals {
     #enable_gatekeeper                            = true
     #enable_gpu_operator                          = true
     #enable_ingress_nginx                         = true
-    enable_kyverno                                = true
+    enable_kyverno = true
     #enable_kube_prometheus_stack                 = true
-    enable_metrics_server                         = true
+    enable_metrics_server = true
     #enable_prometheus_adapter                    = true
     #enable_secrets_store_csi_driver              = true
     #enable_vpa                                   = true
@@ -87,13 +87,13 @@ locals {
   #----------------------------------------------------------------
 
   addons_metadata = merge(
-    module.eks_blueprints_addons.gitops_metadata, # eks blueprints addons automatically expose metadatas
+    try(module.eks_blueprints_addons.gitops_metadata, {}), # Use an empty map as a default if gitops_metadata is empty
     {
       aws_cluster_name = module.eks.cluster_name
       aws_region       = local.region
       aws_account_id   = data.aws_caller_identity.current.account_id
       aws_vpc_id       = data.aws_vpc.vpc.id
-      cluster_endpoint = module.eks.cluster_endpoint
+      cluster_endpoint = try(module.eks.cluster_endpoint, "")
       env              = local.env
     },
     {
@@ -535,7 +535,7 @@ resource "kubernetes_secret" "git_secrets" {
       type = "git"
       url  = local.gitops_workloads_url
       # comment if you want to uses public repo wigh syntax "https://github.com/xxx" syntax, uncomment when using syntax "git@github.com:xxx"
-      #sshPrivateKey = data.aws_secretsmanager_secret_version.workload_repo_secret.secret_string
+      sshPrivateKey = data.aws_secretsmanager_secret_version.workload_repo_secret.secret_string
     }
   }
   metadata {
@@ -565,7 +565,8 @@ module "gitops_bridge_metadata" {
 ################################################################################
 
 module "gitops_bridge_bootstrap" {
-  source = "github.com/gitops-bridge-dev/gitops-bridge-argocd-bootstrap-terraform?ref=v1.0.0"
+  #source = "github.com/gitops-bridge-dev/gitops-bridge-argocd-bootstrap-terraform?ref=v1.0.0"
+  source = "github.com/allamand/gitops-bridge-argocd-bootstrap-terraform?ref=helm_raw"
 
   argocd_cluster               = module.gitops_bridge_metadata.argocd
   argocd_bootstrap_app_of_apps = local.argocd_bootstrap_app_of_apps
@@ -576,8 +577,16 @@ module "gitops_bridge_bootstrap" {
       {
         name  = "server.service.type"
         value = "LoadBalancer"
+      },
+      {
+        name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-nlb-target-type"
+        value = "ip"
+      },
+      {
+        name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
+        value = "internet-facing"
       }
-    ]
+    ]    
     set_sensitive = [
       {
         name  = "configs.secret.argocdServerAdminPassword"
