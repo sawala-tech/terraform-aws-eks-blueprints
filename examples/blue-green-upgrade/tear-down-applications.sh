@@ -81,19 +81,37 @@ function delete_argocd_app_except_pattern() {
   echo "No more applications except $1"
 }
 
-#Deactivate All AppSet
+function wait_for_deletion() {
+  # Loop until all Ingress resources are deleted
+  while true; do
+  # Get the list of Ingress resources in the specified namespace
+  ingress_list=$(kubectl get ingress -A -o json)
+
+  # Check if there are no Ingress resources left
+  if [[ "$(echo "$ingress_list" | jq -r '.items | length')" -eq 0 ]]; then
+    echo "All Ingress resources have been deleted."
+    break
+  fi
+  echo "waiting for deletion"
+  # Wait for a while before checking again (adjust the sleep duration as needed)
+  sleep 5
+done
+}
+
+echo "#1. First, we deactivate application sets"
 delete_argocd_appset_except_pattern "^nomatch"
 
-delete_argocd_app_except_pattern "^.*addon-|^.*argo-cd|^bootstrap-.*"
+echo "#2. No we delete all app except addons"
+delete_argocd_app_except_pattern "^.*addon-|^.*argo-cd|^bootstrap-addons"
 
+echo "#3. Wait for objects to be deleted"
+wait_for_deletion
+
+
+echo "#4. Then we delete all addons except LBC and external-dns"
 delete_argocd_app_except_pattern "^.*load-balancer|^.*external-dns|^.*argo-cd|^bootstrap-addons"
 
 #delete_argocd_app_except_pattern "^.*load-balancer"
-
-# #If ArgoCD namespace is stuck in terminating state, we can force it to end
-export NAMESPACE=ecsdemo-crystal
-kubectl get namespace $NAMESPACE -o json | jq 'del(.spec.finalizers)' > /tmp/argocd_ns.json
-kubectl replace --raw "/api/v1/namespaces/$NAMESPACE/finalize" -f /tmp/argocd_ns.json
 
 echo "Tear Down Applications OK"
 
