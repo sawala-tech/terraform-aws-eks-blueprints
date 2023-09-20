@@ -102,7 +102,7 @@ echo "#1. First, we deactivate application sets"
 delete_argocd_appset_except_pattern "^nomatch"
 
 echo "#2. No we delete all app except addons"
-delete_argocd_app_except_pattern "^.*addon-|^.*argo-cd|^bootstrap-addons"
+delete_argocd_app_except_pattern "^.*addon-|^.*argo-cd|^bootstrap-addons|^team-platform"
 
 echo "#3. Wait for objects to be deleted"
 wait_for_deletion

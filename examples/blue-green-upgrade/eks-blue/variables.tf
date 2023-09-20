@@ -89,4 +89,3 @@ variable "gitops_workloads_revision" {
   description = "Git repo revision in workload_repo_url for the ArgoCD workload deployment"
   default     = "main"
 }
-
