@@ -30,8 +30,8 @@ terraform destroy -target="module.eks_cluster.module.gitops_bridge_metadata" -au
 
 terraform destroy -target="module.eks_cluster.module.eks_blueprints_addons" -auto-approve || (echo "error deleting module.eks_cluster.module.eks" && exit -1)
 
-terraform destroy -target="module.eks_cluster.module.ebs_csi_driver_irsa" --auto-approve 
-terraform destroy -target="module.eks_cluster.module.vpc_cni_irsa" --auto-approve 
+terraform destroy -target="module.eks_cluster.module.ebs_csi_driver_irsa" --auto-approve
+terraform destroy -target="module.eks_cluster.module.vpc_cni_irsa" --auto-approve
 terraform destroy -target="module.eks_cluster.module.eks" -auto-approve || (echo "error deleting module.eks_cluster.module.eks" && exit -1)
 
 terraform destroy -auto-approve || (echo "error deleting terraform" && exit -1)

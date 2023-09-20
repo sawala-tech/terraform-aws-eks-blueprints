@@ -54,7 +54,7 @@ function delete_argocd_app_except_pattern() {
     if [[ ! "$app" =~ $1 ]]; then
       echo "Deleting application: $app"
       kubectl -n argocd patch app $app  -p '{"metadata": {"finalizers": ["resources-finalizer.argocd.argoproj.io"]}}' --type merge
-      kubectl -n argocd delete app $app    
+      kubectl -n argocd delete app $app
     else
       echo "Skipping deletion of application: $app (contain '$1')"
     fi

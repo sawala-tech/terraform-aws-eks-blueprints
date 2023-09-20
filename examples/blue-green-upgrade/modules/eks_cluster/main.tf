@@ -586,7 +586,7 @@ module "gitops_bridge_bootstrap" {
         name  = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
         value = "internet-facing"
       }
-    ]    
+    ]
     set_sensitive = [
       {
         name  = "configs.secret.argocdServerAdminPassword"
